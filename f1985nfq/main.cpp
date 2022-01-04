@@ -19,6 +19,9 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
+// for do not disable console windows
+// #pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
+
 static void glfw_error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
@@ -54,7 +57,6 @@ int main()
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
-
 	// Create window with graphics context
 	GLFWwindow* window = glfwCreateWindow(300, 600, "f1985nfq", NULL, NULL);
 	if (window == NULL)
@@ -77,9 +79,6 @@ int main()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.WindowPadding.x = 40;
-	style.WindowPadding.y = 40;
 
 	// Load Fonts
 	// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -118,39 +117,47 @@ int main()
 		// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 		if (show_main_window) //ImGui::ShowDemoWindow(&show_demo_window);
 		{
-			static bool use_work_area = false;
-			static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
-
-			// We demonstrate using the full viewport area or the work area (without menu-bars, task-bars etc.)
-			// Based on your use case you may want one of the other.
-			const ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(use_work_area ? viewport->WorkPos : viewport->Pos);
-			ImGui::SetNextWindowSize(use_work_area ? viewport->WorkSize : viewport->Size);
-
-			if (ImGui::Begin("Example: Fullscreen window", &show_main_window, flags))
+			static int corner = 0;
+			ImGuiIO& io = ImGui::GetIO();
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+			if (corner != -1)
 			{
-				//ImGui::Checkbox("Use work area instead of main area", &use_work_area);
-				ImGui::SameLine();
-				//HelpMarker("Main Area = entire viewport,\nWork Area = entire viewport minus sections used by the main menu bars, task bars etc.\n\nEnable the main-menu bar in Examples menu to see the difference.");
+				const float PAD = 20.0f;
+				const ImGuiViewport* viewport = ImGui::GetMainViewport();
+				ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+				ImVec2 work_size = viewport->WorkSize;
+				ImVec2 window_pos, window_pos_pivot;
+				window_pos.x = (corner & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
+				window_pos.y = (corner & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
+				window_pos_pivot.x = (corner & 1) ? 1.0f : 0.0f;
+				window_pos_pivot.y = (corner & 2) ? 1.0f : 0.0f;
+				ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+				window_flags |= ImGuiWindowFlags_NoMove;
+			}
+			ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+			if (ImGui::Begin("MainWindow", &show_main_window, window_flags))
+			{
+				//IMGUI_DEMO_MARKER("Examples/Simple Overlay");
+				//ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You can input information about target;" "\n" "And send it.");
 
-				//ImGui::CheckboxFlags("ImGuiWindowFlags_NoBackground", &flags, ImGuiWindowFlags_NoBackground);
-				//ImGui::CheckboxFlags("ImGuiWindowFlags_NoDecoration", &flags, ImGuiWindowFlags_NoDecoration);
-				//ImGui::Indent();
-				//ImGui::CheckboxFlags("ImGuiWindowFlags_NoTitleBar", &flags, ImGuiWindowFlags_NoTitleBar);
-				//ImGui::CheckboxFlags("ImGuiWindowFlags_NoCollapse", &flags, ImGuiWindowFlags_NoCollapse);
-				//ImGui::CheckboxFlags("ImGuiWindowFlags_NoScrollbar", &flags, ImGuiWindowFlags_NoScrollbar);
-				//ImGui::Unindent();
-
-				//if (ImGui::Button("Close this window"))
-				//	show_main_window = false;
-
-				ImGui::Text("address:");
-
-				if (ImGui::Button("Send", ImVec2(200, 100)))
+				static char host_buf[1024] = "";
+				ImGui::InputText("Host", host_buf, sizeof(host_buf));
+				static char port_buf[1024] = "";
+				ImGui::InputText("Port", port_buf, sizeof(port_buf), ImGuiInputTextFlags_CharsDecimal);
+				static char path_buf[1024] = "";
+				ImGui::InputText("Path", path_buf, sizeof(path_buf));
+				if (ImGui::Button("Send File"))
 				{
-					fprintf(stderr, "±»µã»÷·¢ËÍ!\n");
+					fprintf(stdout, "Send File!\n");
 				}
 
+				static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+				static char text[1024 * 16] = { 0 };
+				ImGui::InputTextMultiline("##source", text, IM_ARRAYSIZE(text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
+				if (ImGui::Button("Send Msg"))
+				{
+					fprintf(stdout, "Send Msg!\n");
+				}
 			}
 			ImGui::End();
 		}
