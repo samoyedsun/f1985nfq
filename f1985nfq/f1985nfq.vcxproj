@@ -71,6 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(W_INCLUDE)\boost\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(W_INCLUDE)\boost\lib\$(Platform);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -168,6 +170,10 @@
     <ClCompile Include="..\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="net_client.cpp" />
+    <ClCompile Include="net_mgr.cpp" />
+    <ClCompile Include="net_server.cpp" />
+    <ClCompile Include="net_session.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\imgui\backends\imgui_impl_glfw.h" />
@@ -176,6 +182,11 @@
     <ClInclude Include="..\imgui\imconfig.h" />
     <ClInclude Include="..\imgui\imgui.h" />
     <ClInclude Include="..\imgui\imgui_internal.h" />
+    <ClInclude Include="net_client.h" />
+    <ClInclude Include="net_mgr.h" />
+    <ClInclude Include="net_msg.h" />
+    <ClInclude Include="net_server.h" />
+    <ClInclude Include="net_session.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

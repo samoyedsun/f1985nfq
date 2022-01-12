@@ -7,6 +7,10 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
+#include <iostream>
+#include "net_server.h"
+#include "net_client.h"
+
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
 #endif
@@ -20,15 +24,78 @@
 #endif
 
 // for do not disable console windows
-// #pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
+//#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 
 static void glfw_error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+void show_main_windows()
+{
+	bool show_flag = true;
+	if (!show_flag)
+		return;
+	
+	static int corner = 0;
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoFocusOnAppearing |
+		ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoNav;
+	if (corner != -1)
+	{
+		const float PAD = 15.0f;
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+		ImVec2 work_size = viewport->WorkSize;
+		ImVec2 window_pos, window_pos_pivot;
+		window_pos.x = (corner & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
+		window_pos.y = (corner & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
+		window_pos_pivot.x = (corner & 1) ? 1.0f : 0.0f;
+		window_pos_pivot.y = (corner & 2) ? 1.0f : 0.0f;
+		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+		window_flags |= ImGuiWindowFlags_NoMove;
+	}
+
+	if (ImGui::Begin("MainWindow", &show_flag, window_flags))
+	{
+		static char local_port_buf[10] = "";
+		ImGui::InputText("LPort", local_port_buf, sizeof(local_port_buf), ImGuiInputTextFlags_CharsDecimal);
+		if (ImGui::Button("Listen", ImVec2(80, 40)))
+			fprintf(stdout, "Listen!\n");
+
+		static char host_buf[1024] = "";
+		ImGui::InputText("Host", host_buf, sizeof(host_buf));
+		static char port_buf[10] = "";
+		ImGui::InputText("RPort", port_buf, sizeof(port_buf), ImGuiInputTextFlags_CharsDecimal);
+		static char path_buf[1024] = "";
+		ImGui::InputText("Path", path_buf, sizeof(path_buf));
+		if (ImGui::Button("Send File", ImVec2(80, 40)))
+			fprintf(stdout, "Send File!\n");
+
+
+		static char text1[512 * 8] = { 0 };
+		ImGui::InputTextMultiline("recvBox", text1, IM_ARRAYSIZE(text1), ImVec2(300, ImGui::GetTextLineHeight() * 8), ImGuiInputTextFlags_ReadOnly);
+
+		static char text2[512 * 8] = { 0 };
+		ImGui::InputTextMultiline("sendBox", text2, IM_ARRAYSIZE(text2), ImVec2(300, ImGui::GetTextLineHeight() * 8), ImGuiInputTextFlags_AllowTabInput);
+
+		if (ImGui::Button("Send Msg", ImVec2(80, 40)))
+		{
+			fprintf(stdout, "Send Msg!\n");
+			net_client::send_102(text2);
+		}
+	}
+	ImGui::End();
+}
+
 int main()
 {
+	net_server::instance()->init();
+	//net_server::instance()->loop();
+
 	// Setup window
 	glfwSetErrorCallback(glfw_error_callback);
 	if (!glfwInit())
@@ -57,28 +124,26 @@ int main()
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
 	// Create window with graphics context
-	GLFWwindow* window = glfwCreateWindow(300, 600, "f1985nfq", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(400, 600, "f1985nfq", NULL, NULL);
 	if (window == NULL)
 		return 1;
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1); // Enable vsync
 
-						 // Setup Dear ImGui context
+	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 	
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsLight();
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
-
 
 	// Load Fonts
 	// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -92,12 +157,11 @@ int main()
 	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
 	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
 	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-	//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-	//IM_ASSERT(font != NULL);
+	ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChineseFull());
+	IM_ASSERT(font != NULL);
 
 	// Our state
-	bool show_main_window = true;
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.0f, 1.00f);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window))
@@ -113,54 +177,8 @@ int main()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
-		// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-		if (show_main_window) //ImGui::ShowDemoWindow(&show_demo_window);
-		{
-			static int corner = 0;
-			ImGuiIO& io = ImGui::GetIO();
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-			if (corner != -1)
-			{
-				const float PAD = 20.0f;
-				const ImGuiViewport* viewport = ImGui::GetMainViewport();
-				ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-				ImVec2 work_size = viewport->WorkSize;
-				ImVec2 window_pos, window_pos_pivot;
-				window_pos.x = (corner & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
-				window_pos.y = (corner & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
-				window_pos_pivot.x = (corner & 1) ? 1.0f : 0.0f;
-				window_pos_pivot.y = (corner & 2) ? 1.0f : 0.0f;
-				ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-				window_flags |= ImGuiWindowFlags_NoMove;
-			}
-			ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
-			if (ImGui::Begin("MainWindow", &show_main_window, window_flags))
-			{
-				//IMGUI_DEMO_MARKER("Examples/Simple Overlay");
-				//ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "You can input information about target;" "\n" "And send it.");
-
-				static char host_buf[1024] = "";
-				ImGui::InputText("Host", host_buf, sizeof(host_buf));
-				static char port_buf[1024] = "";
-				ImGui::InputText("Port", port_buf, sizeof(port_buf), ImGuiInputTextFlags_CharsDecimal);
-				static char path_buf[1024] = "";
-				ImGui::InputText("Path", path_buf, sizeof(path_buf));
-				if (ImGui::Button("Send File"))
-				{
-					fprintf(stdout, "Send File!\n");
-				}
-
-				static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-				static char text[1024 * 16] = { 0 };
-				ImGui::InputTextMultiline("##source", text, IM_ARRAYSIZE(text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
-				if (ImGui::Button("Send Msg"))
-				{
-					fprintf(stdout, "Send Msg!\n");
-				}
-			}
-			ImGui::End();
-		}
+		
+		show_main_windows();
 
 		// Rendering
 		ImGui::Render();
@@ -181,6 +199,10 @@ int main()
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	net_server::instance()->destory();
+
+	system("pause");
 
 	return 0;
 }

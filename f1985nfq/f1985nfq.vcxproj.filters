@@ -11,11 +11,11 @@
     <Filter Include="backends">
       <UniqueIdentifier>{10a15e87-7050-4870-baad-8f222fc1dd40}</UniqueIdentifier>
     </Filter>
+    <Filter Include="net">
+      <UniqueIdentifier>{172e2aab-8a70-443b-896d-544a085d2647}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
@@ -37,6 +37,21 @@
     <ClCompile Include="..\imgui\backends\imgui_impl_opengl3.cpp">
       <Filter>backends</Filter>
     </ClCompile>
+    <ClCompile Include="net_session.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
+    <ClCompile Include="net_mgr.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
+    <ClCompile Include="net_server.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="net_client.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\imgui\imconfig.h">
@@ -56,6 +71,21 @@
     </ClInclude>
     <ClInclude Include="..\imgui\backends\imgui_impl_opengl3_loader.h">
       <Filter>backends</Filter>
+    </ClInclude>
+    <ClInclude Include="net_session.h">
+      <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="net_mgr.h">
+      <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="net_msg.h">
+      <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="net_server.h">
+      <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="net_client.h">
+      <Filter>net</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
