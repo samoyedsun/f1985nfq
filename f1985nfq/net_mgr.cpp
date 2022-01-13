@@ -69,10 +69,12 @@ void net_mgr::destroy()
 
 void net_mgr::process_msg()
 {
-	msg_base *msg_ptr = m_msgs.front();
-	m_msgs.pop();
-
-	m_msg_callback(msg_ptr->get_sid(), msg_ptr);
+	while (m_msgs.size() > 0)
+	{
+		msg_base *msg_ptr = m_msgs.front();
+		m_msg_callback(*msg_ptr);
+		m_msgs.pop();
+	}
 }
 
 void net_mgr::_worker_thread()
@@ -82,7 +84,7 @@ void net_mgr::_worker_thread()
 		try
 		{
 			m_io_service.run();
-			std::cout << " thread exit" << std::endl;
+			std::cout << "net mgr thread exit." << std::endl;
 			break;
 		}
 		catch (boost::system::system_error& e)
@@ -197,27 +199,5 @@ msg_base *net_mgr::_create_msg(uint32_t sid, uint16_t msg_id, uint16_t size, con
 
 void net_mgr::_push_msg(msg_base *msg_ptr)
 {
-	std::cout << "=========sid:" << msg_ptr->get_sid() << std::endl;
-	std::cout << "=========msg_id:" << msg_ptr->get_msg_id() << std::endl;
-	std::cout << "=========size:" << msg_ptr->get_size() << std::endl;
-	switch (msg_ptr->get_msg_id())
-	{
-	case 101:
-	{
-		msg_hello *msg_hello_ptr = (msg_hello *)msg_ptr;
-		std::cout << "=========hp:" << msg_hello_ptr->get_hp() << std::endl;
-		std::cout << "=========mp:" << msg_hello_ptr->get_mp() << std::endl;
-		break;
-	}
-	case 102:
-	{
-		msg_world *msg_world_ptr = (msg_world *)msg_ptr;
-		std::cout << "=========content:" << msg_world_ptr->get_content() << std::endl;
-		break;
-	}
-	default:
-		std::cout << "not found!" << std::endl;
-		break;
-	}
 	m_msgs.push(msg_ptr);
 }

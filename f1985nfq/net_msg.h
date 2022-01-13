@@ -1,3 +1,6 @@
+#ifndef _NET_MSG_H_
+#define _NET_MSG_H_
+
 #include <cstring>
 #include <iostream>
 
@@ -55,3 +58,5 @@ public:
 	std::string get_content() { return (const char *)(this->get_buf()); }
 	//void set_content(std::string &content) { return (char *)(this->get_buf()); }
 };
+
+#endif

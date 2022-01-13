@@ -8,6 +8,8 @@
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <iostream>
+#include <boost/bind.hpp>
+#include <thread>
 #include "net_server.h"
 #include "net_client.h"
 
@@ -31,6 +33,8 @@ static void glfw_error_callback(int error, const char* description)
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+static char recv_field[512 * 8] = { 0 };
+
 void show_main_windows()
 {
 	bool show_flag = true;
@@ -42,7 +46,7 @@ void show_main_windows()
 		ImGuiWindowFlags_AlwaysAutoResize |
 		ImGuiWindowFlags_NoSavedSettings |
 		ImGuiWindowFlags_NoFocusOnAppearing |
-		ImGuiWindowFlags_NoBackground |
+		//ImGuiWindowFlags_NoBackground |
 		ImGuiWindowFlags_NoNav;
 	if (corner != -1)
 	{
@@ -75,9 +79,7 @@ void show_main_windows()
 		if (ImGui::Button("Send File", ImVec2(80, 40)))
 			fprintf(stdout, "Send File!\n");
 
-
-		static char text1[512 * 8] = { 0 };
-		ImGui::InputTextMultiline("recvBox", text1, IM_ARRAYSIZE(text1), ImVec2(300, ImGui::GetTextLineHeight() * 8), ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputTextMultiline("recvBox", recv_field, IM_ARRAYSIZE(recv_field), ImVec2(300, ImGui::GetTextLineHeight() * 8), ImGuiInputTextFlags_ReadOnly);
 
 		static char text2[512 * 8] = { 0 };
 		ImGui::InputTextMultiline("sendBox", text2, IM_ARRAYSIZE(text2), ImVec2(300, ImGui::GetTextLineHeight() * 8), ImGuiInputTextFlags_AllowTabInput);
@@ -94,7 +96,8 @@ void show_main_windows()
 int main()
 {
 	net_server::instance()->init();
-	//net_server::instance()->loop();
+	net_server::instance()->set_recv_field_ptr(recv_field);
+	net_server::instance()->startup();
 
 	// Setup window
 	glfwSetErrorCallback(glfw_error_callback);
@@ -200,6 +203,7 @@ int main()
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
+	net_server::instance()->shutdown();
 	net_server::instance()->destory();
 
 	system("pause");

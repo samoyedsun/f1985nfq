@@ -1,3 +1,6 @@
+#ifndef _NET_MGR_H_
+#define _NET_MGR_H_
+
 #include <queue>
 #include <thread>
 #include <mutex>
@@ -16,7 +19,7 @@ public:
 	//断开连接回调
 	typedef std::function<void(uint32_t session_id)> wdisconnect_cb;
 	//消息回调1 隐藏网络消息结构
-	typedef std::function<void(uint32_t session_id, msg_base* msg_ptr)> wmsg_cb;
+	typedef std::function<void(msg_base& msg)> wmsg_cb;
 
 public:
 	typedef std::vector<net_session*> wsessions;
@@ -50,6 +53,9 @@ public:
 	void destroy();
 
 	void process_msg();
+
+public:
+	void set_msg_callback(wmsg_cb callback) { m_msg_callback = callback; }
 
 private:
 	// 工作线程
@@ -93,3 +99,5 @@ private:
 
 	std::queue<msg_base *> m_msgs;
 };
+
+#endif

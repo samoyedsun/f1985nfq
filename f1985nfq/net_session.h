@@ -1,3 +1,6 @@
+#ifndef _NET_SESSION_H_
+#define _NET_SESSION_H_
+
 class net_session
 {
 public:
@@ -28,3 +31,5 @@ private:
 	char*				m_recv_buf_ptr;		// 接收消息
 	uint32_t			m_recv_size;
 };
+
+#endif
