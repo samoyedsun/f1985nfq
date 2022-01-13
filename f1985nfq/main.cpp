@@ -1,8 +1,3 @@
-// Dear ImGui: standalone example application for GLFW + OpenGL 3, using programmable pipeline
-// (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
-// If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
-// Read online: https://github.com/ocornut/imgui/tree/master/docs
-
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -16,23 +11,20 @@
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
 #endif
-#include <GLFW/glfw3.h> // Will drag system OpenGL headers
+#include <GLFW/glfw3.h>
 
-// [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
-// To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
-// Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-// for do not disable console windows
-//#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
+#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 
 static void glfw_error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+static char remote_host_buf[1024] = "";
 static char recv_field[512 * 8] = { 0 };
 
 void show_main_windows()
@@ -52,7 +44,7 @@ void show_main_windows()
 	{
 		const float PAD = 15.0f;
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+		ImVec2 work_pos = viewport->WorkPos;
 		ImVec2 work_size = viewport->WorkSize;
 		ImVec2 window_pos, window_pos_pivot;
 		window_pos.x = (corner & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
@@ -65,15 +57,7 @@ void show_main_windows()
 
 	if (ImGui::Begin("MainWindow", &show_flag, window_flags))
 	{
-		static char local_port_buf[10] = "";
-		ImGui::InputText("LPort", local_port_buf, sizeof(local_port_buf), ImGuiInputTextFlags_CharsDecimal);
-		if (ImGui::Button("Listen", ImVec2(80, 40)))
-			fprintf(stdout, "Listen!\n");
-
-		static char host_buf[1024] = "";
-		ImGui::InputText("Host", host_buf, sizeof(host_buf));
-		static char port_buf[10] = "";
-		ImGui::InputText("RPort", port_buf, sizeof(port_buf), ImGuiInputTextFlags_CharsDecimal);
+		ImGui::InputText("Host", remote_host_buf, sizeof(remote_host_buf));
 		static char path_buf[1024] = "";
 		ImGui::InputText("Path", path_buf, sizeof(path_buf));
 		if (ImGui::Button("Send File", ImVec2(80, 40)))
@@ -87,7 +71,8 @@ void show_main_windows()
 		if (ImGui::Button("Send Msg", ImVec2(80, 40)))
 		{
 			fprintf(stdout, "Send Msg!\n");
-			net_client::send_102(text2);
+			net_client::instance()->set_remote_host(std::string(remote_host_buf));
+			net_client::instance()->send_102(text2);
 		}
 	}
 	ImGui::End();
@@ -99,7 +84,6 @@ int main()
 	net_server::instance()->set_recv_field_ptr(recv_field);
 	net_server::instance()->startup();
 
-	// Setup window
 	glfwSetErrorCallback(glfw_error_callback);
 	if (!glfwInit())
 		return 1;
@@ -129,37 +113,21 @@ int main()
 
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	// Create window with graphics context
-	GLFWwindow* window = glfwCreateWindow(400, 600, "f1985nfq", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(400, 500, "f1985nfq", NULL, NULL);
 	if (window == NULL)
 		return 1;
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1); // Enable vsync
+	glfwSwapInterval(1);
 
-	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	
-	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	// Load Fonts
-	// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-	// - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-	// - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-	// - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-	// - Read 'docs/FONTS.md' for more instructions and details.
-	// - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-	//io.Fonts->AddFontDefault();
-	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-	//io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
 	ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChineseFull());
 	IM_ASSERT(font != NULL);
 
@@ -169,21 +137,14 @@ int main()
 	// Main loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// Poll and handle events (inputs, window resize, etc.)
-		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
-		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
-		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 		glfwPollEvents();
 
-		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		
 		show_main_windows();
 
-		// Rendering
 		ImGui::Render();
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -195,7 +156,6 @@ int main()
 		glfwSwapBuffers(window);
 	}
 
-	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
@@ -205,6 +165,8 @@ int main()
 
 	net_server::instance()->shutdown();
 	net_server::instance()->destory();
+
+	net_client::instance()->destory();
 
 	system("pause");
 

@@ -21,6 +21,7 @@ net_server* net_server::instance()
 	if (m_instance == NULL)
 	{
 		m_instance = new net_server;
+		std::cout << "net server create." << std::endl;
 	}
 	return m_instance;
 }
@@ -39,7 +40,7 @@ void net_server::init()
 
 void net_server::startup()
 {
-	m_net_mgr->startup(1, "0.0.0.0", 13000);
+	m_net_mgr->startup(1, "0.0.0.0", 19851);
 
 	m_thread_ptr = new std::thread(boost::bind(&net_server::loop, this));
 
@@ -66,9 +67,6 @@ void net_server::shutdown()
 		{
 			m_thread_ptr->join();
 		}
-
-		delete m_thread_ptr;
-		m_thread_ptr = NULL;
 	}
 
 	std::cout << "net server shutdown." << std::endl;
@@ -76,10 +74,13 @@ void net_server::shutdown()
 
 void net_server::destory()
 {
+	delete m_thread_ptr;
+
 	m_net_mgr->shutdown();
 	m_net_mgr->destroy();
-
 	delete m_net_mgr;
+
+	delete m_instance;
 	std::cout << "net server destory." << std::endl;
 }
 
