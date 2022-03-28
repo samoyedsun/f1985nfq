@@ -3,6 +3,7 @@
 #include "boost/version.hpp"
 #include "boost/asio.hpp"
 #include "boost/array.hpp"
+#include "boost/thread/thread.hpp"
 
 using namespace std;
 using namespace boost::asio;
@@ -58,7 +59,7 @@ int main()
 		size_t self_port = socket.local_endpoint().port();
 
 		socket.close();
-			
+
 		ip::tcp::acceptor acceptor(io_srv);
                 ip::tcp::endpoint svc_endpoint(ip::address_v4::from_string("0.0.0.0"), self_port);
         	acceptor.open(svc_endpoint.protocol());
@@ -67,7 +68,8 @@ int main()
                	acceptor.listen();
 
 		std::shared_ptr<ip::tcp::socket> p_data_socket = std::make_shared<ip::tcp::socket>(io_srv);
-		acceptor.async_accept(*p_data_socket, [p_data_socket](boost::system::error_code ec){
+		acceptor.async_accept(*p_data_socket, [p_data_socket](boost::system::error_code ec)
+		{
 			if (ec)
 			{
 				cout << "accept error:" << ec.message() << endl;
@@ -75,12 +77,17 @@ int main()
 			else
 			{
 				cout << "accept success!" << endl;
-				/*
-				std::shared_ptr<connection> c=std::make_shared<connection>(\
-					p_data_socket->remote_endpoint().address().to_string(),\
-					p_data_socket->remote_endpoint().port(),*this);
-				c->read_msg_from_socket(p_data_socket);
-				*/
+
+				boost::array<char, 128> buf;
+				size_t len = p_data_socket->read_some(boost::asio::buffer(buf), ec);
+				if (ec)
+				{
+					throw boost::system::system_error(ec);
+				}
+				cout << "===========read len:" << len << endl;
+				cout << "===========read str:" << string(buf.data(), len) << endl;
+				
+				// 接下来继续读新的数据
 			}
 		});
 
@@ -88,31 +95,31 @@ int main()
 		cin >> a;
 		cout << a;
 
-		ip::tcp::endpoint cli_endpoint(ip::address::from_string(remote_address.c_str()), stoi(remote_port));
-		ip::tcp::socket cli_socket(io_srv);
-		cout << "connnect to " << remote_host <<  endl;
-		cli_socket.connect(cli_endpoint);
-		cout << "connnect success " <<  endl;
-
-		cin >> a;
-		cout << a;
-
-		cli_socket.write_some(buffer("Hello P2P"), ec);
-		if (ec)
+		boost::thread thrd([&]()
 		{
-			throw boost::system::system_error(ec);
-		}
-		cout << "send some data" << endl;
+			io_service io_cli;
+			ip::tcp::endpoint cli_endpoint(ip::address::from_string(remote_address.c_str()), stoi(remote_port));
+			ip::tcp::socket cli_socket(io_cli);
+			cout << "connnect to " << remote_host <<  endl;
+			cli_socket.connect(cli_endpoint);
+			cout << "connnect success " <<  endl;
 
-		len = cli_socket.read_some(boost::asio::buffer(buf), ec);
-		if (ec)
-		{
-			throw boost::system::system_error(ec);
-		}
-		//cli_socket.async_connect(cli_endpoint, [](){
-		//
-		//				})
-		
+			cin >> a;
+			cout << a;
+
+			cli_socket.write_some(buffer("Hello P2P"), ec);
+			if (ec)
+			{
+				throw boost::system::system_error(ec);
+			}
+			cout << "send some data" << endl;
+			
+			io_cli.run();
+		});
+
+		io_srv.run();
+        	thrd.join();
+
 		cout << "executor finish" << endl;
 	}
 	catch (std::exception& e)

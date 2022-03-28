@@ -15,4 +15,4 @@ link_directories(${PROJECT_SOURCE_DIR}/../../boost_1_78_0/stage/lib)
 
 add_executable(nfqclient main.cpp)
 
-target_link_libraries(nfqclient PUBLIC pthread)
+target_link_libraries(nfqclient PUBLIC pthread boost_thread)
