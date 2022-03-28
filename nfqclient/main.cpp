@@ -26,7 +26,7 @@ int main()
 		io_service io_srv;
 		ip::tcp::socket socket(io_srv);
 
-		ip::tcp::endpoint endpoint(ip::address::from_string("127.0.0.1"), 19950);
+		ip::tcp::endpoint endpoint(ip::address::from_string("47.104.149.98"), 19950);
 		socket.connect(endpoint);
 		
 		size_t len;
@@ -56,16 +56,33 @@ int main()
 			<< ":"
 			<< socket.local_endpoint().port()
 		<< endl;
+		string self_address = socket.local_endpoint().address().to_string();
 		size_t self_port = socket.local_endpoint().port();
 
-		socket.close();
+		socket.shutdown(ip::tcp::socket::shutdown_both, ec);
+		if (ec)
+		{
+			throw boost::system::system_error(ec);
+		}
+		socket.close(ec);
+		if (ec)
+		{
+			throw boost::system::system_error(ec);
+		}
+
+		int delay_count = 0;
+		while (delay_count ++ < 3)
+		{
+			sleep(1);	
+			cout << "after closed socket, delay count : " << delay_count << endl;
+		}
 
 		ip::tcp::acceptor acceptor(io_srv);
-                ip::tcp::endpoint svc_endpoint(ip::address_v4::from_string("0.0.0.0"), self_port);
+                ip::tcp::endpoint svc_endpoint(ip::address_v4::from_string(self_address.c_str()), self_port);
         	acceptor.open(svc_endpoint.protocol());
                	acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
-               	acceptor.bind(svc_endpoint);
-               	acceptor.listen();
+		acceptor.bind(svc_endpoint);
+		acceptor.listen();
 
 		std::shared_ptr<ip::tcp::socket> p_data_socket = std::make_shared<ip::tcp::socket>(io_srv);
 		acceptor.async_accept(*p_data_socket, [p_data_socket](boost::system::error_code ec)
@@ -91,9 +108,11 @@ int main()
 			}
 		});
 
-		char a;
-		cin >> a;
-		cout << a;
+		while (delay_count ++ < 6)
+		{
+			sleep(1);	
+			cout << "after closed socket, delay count : " << delay_count << endl;
+		}
 
 		boost::thread thrd([&]()
 		{
@@ -104,6 +123,8 @@ int main()
 			cli_socket.connect(cli_endpoint);
 			cout << "connnect success " <<  endl;
 
+			cout << "press any key to continue!" << endl;
+			char a;
 			cin >> a;
 			cout << a;
 
