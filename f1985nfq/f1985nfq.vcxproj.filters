@@ -87,5 +87,8 @@
     <ClInclude Include="net_client.h">
       <Filter>net</Filter>
     </ClInclude>
+    <ClInclude Include="app_log.h">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

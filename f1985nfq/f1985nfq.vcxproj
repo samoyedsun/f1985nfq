@@ -182,6 +182,7 @@
     <ClInclude Include="..\imgui\imconfig.h" />
     <ClInclude Include="..\imgui\imgui.h" />
     <ClInclude Include="..\imgui\imgui_internal.h" />
+    <ClInclude Include="app_log.h" />
     <ClInclude Include="net_client.h" />
     <ClInclude Include="net_mgr.h" />
     <ClInclude Include="net_msg.h" />
