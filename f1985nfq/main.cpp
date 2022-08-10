@@ -2,12 +2,15 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <cstdio>
+#include <ctime>
 #include <iostream>
+#include <random>
 #include <boost/bind.hpp>
 #include <thread>
 #include "net_server.h"
 #include "net_client.h"
 #include "app_log.h"
+
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
@@ -87,46 +90,47 @@ void show_main_windows()
 	ImGui::End();
 }
 
-void show_example_app_rendering()
+void show_example_app_rendering(ExampleAppLog * log)
 {
 	bool show_flag = true;
 	if (!show_flag)
 		return;
 
-	static bool use_work_area = true;
-	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
-
-	// We demonstrate using the full viewport area or the work area (without menu-bars, task-bars etc.)
-	// Based on your use case you may want one of the other.
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(use_work_area ? viewport->WorkPos : viewport->Pos);
-	ImGui::SetNextWindowSize(use_work_area ? viewport->WorkSize : viewport->Size);
+	ImGui::SetNextWindowPos(viewport->WorkPos);
+	ImGui::SetNextWindowSize(viewport->WorkSize);
 
+	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
 	if (!ImGui::Begin("Example: Custom rendering", &show_flag, flags))
 	{
 		ImGui::End();
 		return;
 	}
 
-	static ImVector<ImVec2> points;
-	static ImVec2 scrolling(0.0f, 0.0f);
-	static bool opt_enable_grid = true;
-	static bool adding_line = false;
-
-
 	//-------------------------------------------------
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	static float sz = 120.0f;
-	static float thickness = 3.0f;
 	static int ngon_sides = 6;
-	static ImVec4 colf = ImVec4(0.0f, 1.0f, 0.4f, 1.0f);
-	const ImU32 col = ImColor(colf);
-	static int circle_segments_override_v = 12;
-	const int circle_segments = false ? circle_segments_override_v : 0;
-	const ImDrawFlags corners_tl_br = ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight;
 
+	std::default_random_engine e1;
+	std::uniform_int_distribution<int> u1(1, 10);
+	e1.seed(time(NULL) + 1000000);
+
+	std::default_random_engine e2;
+	std::uniform_int_distribution<int> u2(1, 10);
+	e2.seed(time(NULL));
+
+	std::default_random_engine e3;
+	std::uniform_int_distribution<int> u3(1, 10);
+	e3.seed(time(NULL) - 1000000);
+
+
+	log->AddLog("n1:%d, n2:%d, n3:%d\n", u1(e1), u2(e2), u3(e3));
+
+	const ImU32 col = ImColor(ImVec4(u1(e1) * 0.1f, u2(e2) * 0.3f, u1(e3) * 0.1f, 1.0f));
 	const ImVec2 p = ImGui::GetCursorScreenPos();
+
 	float x = p.x + 100.0f;
 	float y = p.y + 100.0f;
 	for (int i = 0; i <9; ++i)
@@ -135,14 +139,14 @@ void show_example_app_rendering()
 	}
 
 	x = p.x + 100.0f;
-	y = p.y + 100.0f + 104.0f;
+	y = p.y + 100.0f + sz * power(0.5f, 3) * 7;
 	for (int i = 0; i < 8; ++i)
 	{
 		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
 	}
 
 	x = p.x + 100.0f;
-	y = p.y + 100.0f + 104.0f + 104.0f;
+	y = p.y + 100.0f + sz * power(0.5f, 3) * 14;
 	for (int i = 0; i < 6; ++i)
 	{
 		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
@@ -150,14 +154,14 @@ void show_example_app_rendering()
 
 
 	x = p.x + 100.0f;
-	y = p.y + 100.0f + 104.0f + 104.0f + 104.0f;
+	y = p.y + 100.0f + sz * power(0.5f, 3) * 21;
 	for (int i = 0; i < 4; ++i)
 	{
 		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
 	}
 
 	x = p.x + 100.0f;
-	y = p.y + 100.0f + 104.0f + 104.0f + 104.0f + 104.0f;
+	y = p.y + 100.0f + sz * power(0.5f, 3) * 28;
 	for (int i = 0; i < 2; ++i)
 	{
 		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
@@ -192,57 +196,6 @@ void show_example_app_rendering()
 	{
 		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
 	}
-
-	/*
-	// Using InvisibleButton() as a convenience 1) it will advance the layout cursor and 2) allows us to use IsItemHovered()/IsItemActive()
-	ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
-	ImVec2 canvas_sz = ImGui::GetContentRegionAvail();   // Resize canvas to what's available
-	if (canvas_sz.x < 50.0f) canvas_sz.x = 50.0f;
-	if (canvas_sz.y < 50.0f) canvas_sz.y = 50.0f;
-	ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
-
-	// Draw border and background color
-	ImGuiIO& io = ImGui::GetIO();
-	//ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(50, 50, 50, 255));
-	draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
-
-	// This will catch our interactions
-	ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-	const bool is_hovered = ImGui::IsItemHovered(); // Hovered
-	const bool is_active = ImGui::IsItemActive();   // Held
-	const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y); // Lock scrolled origin
-	const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-
-	// Add first and second point
-	if (is_hovered && !adding_line && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		points.push_back(mouse_pos_in_canvas);
-		points.push_back(mouse_pos_in_canvas);
-		adding_line = true;
-	}
-	if (adding_line)
-	{
-		points.back() = mouse_pos_in_canvas;
-		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-			adding_line = false;
-	}
-
-	// Draw grid + all lines in the canvas
-	draw_list->PushClipRect(canvas_p0, canvas_p1, true);
-	if (opt_enable_grid)
-	{
-		const float GRID_STEP = 64.0f;
-		for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x; x += GRID_STEP)
-			draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y), ImVec2(canvas_p0.x + x, canvas_p1.y), IM_COL32(200, 200, 200, 40));
-		for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y; y += GRID_STEP)
-			draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y), ImVec2(canvas_p1.x, canvas_p0.y + y), IM_COL32(200, 200, 200, 40));
-	}
-	for (int n = 0; n < points.Size; n += 2)
-		draw_list->AddLine(ImVec2(origin.x + points[n].x, origin.y + points[n].y), ImVec2(origin.x + points[n + 1].x, origin.y + points[n + 1].y), IM_COL32(255, 255, 0, 255), 2.0f);
-	draw_list->PopClipRect();
-	*/
 
 	ImGui::End();
 }
@@ -312,7 +265,11 @@ int main()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		
-		show_example_app_rendering();
+		static ExampleAppLog my_log;
+
+		show_example_app_rendering(&my_log);
+		
+		my_log.Draw("DebugLog");
 
 		ImGui::Render();
 		int display_w, display_h;
