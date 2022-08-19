@@ -110,91 +110,42 @@ void show_example_app_rendering(ExampleAppLog * log)
 	//-------------------------------------------------
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	static float sz = 120.0f;
-	static int ngon_sides = 6;
-
 	std::default_random_engine e1;
 	std::uniform_int_distribution<int> u1(1, 10);
 	e1.seed(time(NULL) + 1000000);
-
 	std::default_random_engine e2;
 	std::uniform_int_distribution<int> u2(1, 10);
 	e2.seed(time(NULL));
-
 	std::default_random_engine e3;
 	std::uniform_int_distribution<int> u3(1, 10);
 	e3.seed(time(NULL) - 1000000);
 
+	// log->AddLog("n1:%d, n2:%d, n3:%d\n", u1(e1), u2(e2), u3(e3));
 
-	log->AddLog("n1:%d, n2:%d, n3:%d\n", u1(e1), u2(e2), u3(e3));
-
-	const ImU32 col = ImColor(ImVec4(u1(e1) * 0.1f, u2(e2) * 0.3f, u1(e3) * 0.1f, 1.0f));
+	const ImU32 color = ImColor(ImVec4(u1(e1) * 0.1f, u2(e2) * 0.3f, u1(e3) * 0.1f, 1.0f));
 	const ImVec2 p = ImGui::GetCursorScreenPos();
 
-	float x = p.x + 100.0f;
-	float y = p.y + 100.0f;
-	for (int i = 0; i <9; ++i)
+	static float sz = 60.0f;
+	static int ngon_sides = 6;
+	const double offset = 50.0f;
+	const double col_interval = sz*0.5f + sz*0.5f*0.5;
+	const double row_interval = sqrt((sz*0.5f * sz*0.5f) - (sz*0.5f*0.5f * sz*0.5f*0.5f)) * 2;
+	double x = 0.0f;
+	double y = 0.0f;
+	for (int i = 0; i < 10; ++i)
 	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
-	}
-
-	x = p.x + 100.0f;
-	y = p.y + 100.0f + sz * power(0.5f, 3) * 7;
-	for (int i = 0; i < 8; ++i)
-	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
-	}
-
-	x = p.x + 100.0f;
-	y = p.y + 100.0f + sz * power(0.5f, 3) * 14;
-	for (int i = 0; i < 6; ++i)
-	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
-	}
-
-
-	x = p.x + 100.0f;
-	y = p.y + 100.0f + sz * power(0.5f, 3) * 21;
-	for (int i = 0; i < 4; ++i)
-	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
-	}
-
-	x = p.x + 100.0f;
-	y = p.y + 100.0f + sz * power(0.5f, 3) * 28;
-	for (int i = 0; i < 2; ++i)
-	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
-	}
-
-	// ------------------------------∫·œÚ----------------------------------
-
-	x = p.x + 100.0f + sz * power(0.5f, 2) * 3;
-	y = p.y + 100.0f - 52.0f;
-	for (int i = 0; i < 8; ++i)
-	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
-	}
-
-	x = p.x + 100.0f + sz * power(0.5f, 2) * 9;
-	y = p.y + 100.0f - 52.0f;
-	for (int i = 0; i < 6; ++i)
-	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
-	}
-
-	x = p.x + 100.0f + sz * power(0.5f, 2) * 15;
-	y = p.y + 100.0f - 52.0f;
-	for (int i = 0; i < 4; ++i)
-	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
-	}
-
-	x = p.x + 100.0f + sz * power(0.5f, 2) * 21;
-	y = p.y + 100.0f - 52.0f;
-	for (int i = 0; i < 2; ++i)
-	{
-		draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, col, ngon_sides); x += sz * 0.5f + sz * power(0.5f, 2); y += sz * 0.5f - sz * power(0.5f, 4);
+		x = p.x + offset + col_interval * (i * 2);
+		y = p.y + offset - row_interval * 0.5 * 0;
+		for (int i = 0; i < 10; ++i)
+		{
+			draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, color, ngon_sides); y += row_interval;
+		}
+		x = p.x + offset + col_interval * (i * 2 + 1);
+		y = p.y + offset - row_interval * 0.5 * 1;
+		for (int i = 0; i < 10; ++i)
+		{
+			draw_list->AddNgonFilled(ImVec2(x, y), sz*0.5f, color, ngon_sides); y += row_interval;
+		}
 	}
 
 	ImGui::End();
@@ -235,7 +186,7 @@ int main()
 
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	GLFWwindow* window = glfwCreateWindow(1000, 700, "f1985nfq", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1000, 600, "f1985nfq", NULL, NULL);
 	if (window == NULL)
 		return 1;
 	glfwMakeContextCurrent(window);
