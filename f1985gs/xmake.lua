@@ -1,13 +1,27 @@
 add_rules("mode.debug", "mode.release")
 
 add_requires("boost 1.80.0")
+add_requires("protobuf-cpp 3.19.4")
 
-target("f1985gs")
+target("server")
     set_kind("binary")
     set_languages("cxx20")
-    add_files("src/*.cpp")
+    add_packages("protobuf-cpp")
+    add_rules("protobuf.cpp")
+    add_files("server/*.cpp")
+    add_files("proto/*.proto")
     add_packages("boost")
---
+
+target("client")
+    set_kind("binary")
+    set_languages("cxx20")
+    add_packages("protobuf-cpp")
+    add_rules("protobuf.cpp")
+    add_files("client/*.cpp")
+    add_files("proto/*.proto")
+    add_packages("boost")
+
+    --
 -- If you want to known more usage about xmake, please see https://xmake.io
 --
 -- ## FAQ
