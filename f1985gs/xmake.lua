@@ -6,20 +6,20 @@ add_requires("protobuf-cpp 3.19.4")
 target("server")
     set_kind("binary")
     set_languages("cxx20")
-    add_packages("protobuf-cpp")
     add_rules("protobuf.cpp")
     add_files("server/*.cpp")
     add_files("proto/*.proto")
     add_packages("boost")
+    add_packages("protobuf-cpp")
 
 target("client")
     set_kind("binary")
     set_languages("cxx20")
-    add_packages("protobuf-cpp")
     add_rules("protobuf.cpp")
     add_files("client/*.cpp")
     add_files("proto/*.proto")
     add_packages("boost")
+    add_packages("protobuf-cpp")
 
     --
 -- If you want to known more usage about xmake, please see https://xmake.io

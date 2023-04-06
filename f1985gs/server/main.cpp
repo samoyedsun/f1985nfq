@@ -165,14 +165,15 @@ public:
         m_msg_handler_umap.try_emplace(msg_id, msg_handler);
     }
 
-    void send(int32_t pointer_id, void* data_ptr, int32_t size)
+    bool send(int32_t pointer_id, void* data_ptr, int32_t size)
     {
         auto pointer_ptr_it = m_pointer_ptr_umap.find(pointer_id);
         if (pointer_ptr_it == m_pointer_ptr_umap.end())
         {
-            return;
+            return false;
         }
         boost::asio::write(pointer_ptr_it->second->socket(), boost::asio::buffer(data_ptr, size));
+        return true;
     }
 
 private:
