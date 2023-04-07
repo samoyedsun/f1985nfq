@@ -217,7 +217,7 @@ int main()
                 {
                     return false;
                 }
-                std::cout << "recive msg abot 10000" << std::endl;
+                std::cout << "recive " << data.member(0) << " msg abot 10000==" << data.id() << std::endl;
                 return true;
             });
 
