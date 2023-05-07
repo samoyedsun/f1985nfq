@@ -1,5 +1,5 @@
 #include "hello.pb.h"
-#include "net_worker.hpp"
+#include "../source/net_worker.hpp"
 
 using boost::asio::ip::tcp;
 
@@ -9,8 +9,9 @@ int main()
 {
     try
     {
-        net_worker net_worker(55890);
-        net_worker.max_recv_size(1024 * 1024);
+        boost::asio::io_context m_context;
+        net_worker net_worker(m_context);
+        net_worker.init(m_context, 1024 * 1024, 5, 100);
         net_worker.register_msg(RPC_Hello, [&net_worker](int32_t pointer_id, void* data_ptr, int32_t size)
             {
                 Hello data;
@@ -27,9 +28,9 @@ int main()
 
                 return true;
             });
+        net_worker.open(55890);
 
-
-        net_worker.run();
+        m_context.run();
     }
     catch (std::exception& e)
     {

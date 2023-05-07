@@ -3,8 +3,8 @@
 #include <boost/bind.hpp>
 #include <google/protobuf/message_lite.h>
 #include "hello.pb.h"
-#include "console_reader.hpp"
-#include "net_worker.hpp"
+#include "../source/console_reader.hpp"
+#include "../source/net_worker.hpp"
 
 using boost::asio::ip::tcp;
 
@@ -20,9 +20,9 @@ public:
         , m_console_reader(m_context)
         , m_timer(m_context, boost::posix_time::milliseconds(1))
     {
-        m_net_worker.init(1024 * 1024, 5);
-        m_net_worker.set_address("127.0.0.1", 55890);
-        m_net_worker.register_msg(RPC_Hello, [this](void* data_ptr, int32_t size)
+        m_net_worker.init(m_context, 1024 * 1024, 5, 100);
+        m_net_worker.push_bullet(m_context, "game", "127.0.0.1", 55890);
+        m_net_worker.register_msg(RPC_Hello, [this](int32_t pointer_id, void* data_ptr, int32_t size)
             {
                 Hello data;
                 if (!data.ParsePartialFromArray(data_ptr, size))
@@ -32,13 +32,13 @@ public:
                 //std::cout << "recive " << data.member(0) << " msg abot 10000==" << data.id() << std::endl;
 
                 // process some logic.
-                //SEND_GUARD(RPC_Hello, m_net_worker, Hello);
+                //SEND_GUARD(pointer_id, RPC_Hello, m_net_worker, Hello);
                 //msg.set_id(500);
                 //msg.add_member(7878);
 
                 return true;
             });
-        m_net_worker.start();
+        m_net_worker.shoot();
         m_console_reader.start();
         m_timer.async_wait(boost::bind(&world::loop, this, boost::asio::placeholders::error));
     }
@@ -81,7 +81,8 @@ private:
             {
                 if (cmd.name == "hello")
                 {
-                    SEND_GUARD(RPC_Hello, m_net_worker, Hello);
+                    // ���1����ͨ��name��ȡ��д���ӿ����㶨
+                    SEND_GUARD(1, RPC_Hello, m_net_worker, Hello);
                     msg.set_id(100);
                     msg.add_member(3434);
                 }
