@@ -9,8 +9,6 @@
 using boost::asio::ip::tcp;
 
 #define RPC_Hello 10000
-#define SEND_GUARD(MSG_ID, NET_WORKER, MSG_TYPE) MSG_TYPE msg; \
-	msg_send_guard send_guard(MSG_ID, NET_WORKER, msg)
 
 class world
 {
@@ -22,7 +20,7 @@ public:
         , m_console_reader(m_context)
         , m_timer(m_context, boost::posix_time::milliseconds(1))
     {
-        m_net_worker.init(1024 * 1024);
+        m_net_worker.init(1024 * 1024, 5);
         m_net_worker.set_address("127.0.0.1", 55890);
         m_net_worker.register_msg(RPC_Hello, [this](void* data_ptr, int32_t size)
             {

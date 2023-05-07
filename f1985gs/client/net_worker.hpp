@@ -1,5 +1,5 @@
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef _NET_WORKER_H_
+#define _NET_WORKER_H_
 
 #include <iostream>
 #include <map>
@@ -35,9 +35,10 @@ public:
         free(m_recv_buf_ptr);
     }
 
-    void init(int32_t max_recv_size)
+    void init(int32_t max_recv_size, uint16_t reconnect_interval)
     {
         m_max_recv_size = max_recv_size;
+        m_reconnect_interval = reconnect_interval;
         m_recv_buf_ptr = malloc(m_max_recv_size);
     }
 
@@ -166,7 +167,7 @@ private:
         }
         std::cout << "closed connection, after 5s reconnect." << std::endl;
 
-        m_timer.expires_from_now(boost::posix_time::seconds(5));
+        m_timer.expires_from_now(boost::posix_time::seconds(m_reconnect_interval));
         m_timer.async_wait(boost::bind(&net_worker::handle_reconnect, this, boost::asio::placeholders::error));
     }
 
@@ -221,5 +222,7 @@ private:
     data_packet m_data_packet;
 };
 
-
+#define SEND_GUARD(MSG_ID, NET_WORKER, MSG_TYPE) MSG_TYPE msg; \
+	msg_send_guard send_guard(MSG_ID, NET_WORKER, msg)
+    
 #endif
