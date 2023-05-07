@@ -1,7 +1,5 @@
 #include "hello.pb.h"
-#include "../source/net_worker.hpp"
-
-using boost::asio::ip::tcp;
+#include "../source/common.hpp"
 
 #define RPC_Hello 10000
 

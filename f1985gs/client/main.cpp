@@ -1,10 +1,5 @@
-#include <iostream>
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <google/protobuf/message_lite.h>
 #include "hello.pb.h"
-#include "../source/console_reader.hpp"
-#include "../source/net_worker.hpp"
+#include "../source/common.hpp"
 
 using boost::asio::ip::tcp;
 
@@ -81,7 +76,7 @@ private:
             {
                 if (cmd.name == "hello")
                 {
-                    // ���1����ͨ��name��ȡ��д���ӿ����㶨
+                    // This number needs to be obtained through an interface that passes in the name
                     SEND_GUARD(1, RPC_Hello, m_net_worker, Hello);
                     msg.set_id(100);
                     msg.add_member(3434);
