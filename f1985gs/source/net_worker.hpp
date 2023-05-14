@@ -193,7 +193,7 @@ public:
     {
     }
 
-    void init(boost::asio::io_context& context, int32_t max_recv_size, uint16_t reconnect_interval, uint16_t pointer_num)
+    void init(boost::asio::io_context& context, int32_t max_recv_size = 1024 * 1024, uint16_t reconnect_interval = 5, uint16_t pointer_num = 1000)
     {
         m_max_recv_size = max_recv_size;
         m_reconnect_interval = reconnect_interval;

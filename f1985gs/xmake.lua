@@ -2,6 +2,7 @@ add_rules("mode.debug", "mode.release")
 
 add_requires("boost 1.80.0")
 add_requires("protobuf-cpp 3.19.4")
+add_requires("lua v5.4.4")
 
 target("server")
     set_kind("binary")
@@ -14,6 +15,7 @@ target("server")
     add_files("proto/*.proto")
     add_packages("boost")
     add_packages("protobuf-cpp")
+    add_packages("lua")
 
 target("client")
     set_kind("binary")
@@ -26,6 +28,7 @@ target("client")
     add_files("proto/*.proto")
     add_packages("boost")
     add_packages("protobuf-cpp")
+    add_packages("lua")
 
     --
 -- If you want to known more usage about xmake, please see https://xmake.io
