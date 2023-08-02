@@ -7,18 +7,20 @@ extern "C"
 #endif
 #include <lua.h>
 #include <lualib.h>
+#include <lauxlib.h>
 #ifdef __cplusplus
 }
 #endif
 
 #define RPC_Hello 10000
+#define LUA_SCRIPT_FILE "main.lua"
 
 static void* l_alloc(void* ud, void* ptr, size_t osize,
     size_t nsize) {
     (void)ud;  (void)osize;  /* not used */
     if (nsize == 0) {
         free(ptr);
-        return NULL;
+        return nullptr;
     }
     else
         return realloc(ptr, nsize);
@@ -35,9 +37,7 @@ public:
         , m_timer(m_context, boost::posix_time::milliseconds(1))
         , m_lua_vm(nullptr)
     {
-        m_lua_vm = lua_newstate(l_alloc, NULL);
-        luaL_openlibs(m_lua_vm);
-
+        init_script();
         m_net_worker.init(m_context);
         m_net_worker.register_msg(RPC_Hello, [this](int32_t pointer_id, void* data_ptr, int32_t size)
             {
@@ -104,8 +104,28 @@ private:
                     msg.set_id(100);
                     msg.add_member(3434);
                 }
+                if (cmd.name == "refresh")
+                {
+                    luaL_dofile(m_lua_vm, LUA_SCRIPT_FILE);
+                }
+                if (cmd.name == "reload")
+                {
+                    init_script();
+                }
             }
         }
+    }
+
+    void init_script()
+    {
+        if (m_lua_vm)
+        {
+            lua_close(m_lua_vm);
+            m_lua_vm = nullptr;
+        }
+        m_lua_vm = lua_newstate(l_alloc, nullptr);
+        luaL_openlibs(m_lua_vm);
+        luaL_dofile(m_lua_vm, LUA_SCRIPT_FILE);
     }
 
     static const int32_t tick_interval = 16;
